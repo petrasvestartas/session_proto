@@ -2,13 +2,16 @@ syntax = "proto3";
 
 package session_proto;
 
-import "point.proto";
+import "color.proto";
 import "xform.proto";
 
 // Polyline message representing a connected sequence of points
+// Stores coordinates as a flat array [x0, y0, z0, x1, y1, z1, ...] for efficiency
 message Polyline {
-  repeated Point points = 1;  // List of points defining the polyline
-  string guid = 2;            // Unique identifier
-  string name = 3;            // Polyline name
-  Xform xform = 4;            // Transformation matrix
+  string guid = 1;                // Unique identifier
+  string name = 2;                // Polyline name
+  repeated double coords = 3;     // Flat array of coordinates [x0, y0, z0, x1, y1, z1, ...]
+  double width = 4;               // Line width
+  Color linecolor = 5;            // Line color
+  Xform xform = 6;                // Transformation matrix
 }
