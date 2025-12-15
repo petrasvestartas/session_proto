@@ -2,13 +2,16 @@ syntax = "proto3";
 
 package session_proto;
 
-import "point.proto";
 import "xform.proto";
 
-// PointCloud message representing a collection of points
+// PointCloud message representing a collection of 3D points with optional colors and normals
+// Stores data as flat arrays for efficient serialization
 message PointCloud {
-  repeated Point points = 1;  // List of points
-  string guid = 2;            // Unique identifier
-  string name = 3;            // Point cloud name
-  Xform xform = 4;            // Transformation matrix
+  string guid = 1;                // Unique identifier
+  string name = 2;                // PointCloud name
+  repeated double coords = 3;     // Flat array of coordinates [x0, y0, z0, x1, y1, z1, ...]
+  repeated uint32 colors = 4;     // Flat array of colors [r0, g0, b0, a0, r1, g1, b1, a1, ...]
+  repeated double normals = 5;    // Flat array of normals [nx0, ny0, nz0, nx1, ny1, nz1, ...]
+  double point_size = 6;          // Point size for display
+  Xform xform = 7;                // Transformation matrix
 }
