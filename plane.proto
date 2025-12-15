@@ -2,17 +2,15 @@ syntax = "proto3";
 
 package session_proto;
 
-import "point.proto";
-import "vector.proto";
 import "xform.proto";
 
-// Plane message representing a 3D plane
+// Plane message representing a 3D plane with minimal storage
+// Uses single flat frame array of 12 numbers: [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]
+// Plane equation coefficients (a, b, c, d) are computed from z_axis and origin
 message Plane {
-  Point origin = 1;     // Origin point on the plane
-  Vector x_axis = 2;    // X-axis direction
-  Vector y_axis = 3;    // Y-axis direction
-  Vector z_axis = 4;    // Normal direction (Z-axis)
-  string guid = 5;      // Unique identifier
-  string name = 6;      // Plane name
-  Xform xform = 7;      // Transformation matrix
+  string guid = 1;              // Unique identifier
+  string name = 2;              // Plane name
+  repeated double frame = 3;    // Frame: origin + x_axis + y_axis + z_axis [12 numbers]
+  double width = 4;             // Width for plane visualization
+  Xform xform = 5;              // Transformation matrix
 }
