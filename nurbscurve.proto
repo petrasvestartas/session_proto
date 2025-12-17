@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "color.proto";
+import "xform.proto";
+
+// NurbsCurve message representing a Non-Uniform Rational B-Spline curve
+message NurbsCurve {
+  string guid = 1;                // Unique identifier
+  string name = 2;                // Curve name
+  int32 dimension = 3;            // Dimension (typically 3)
+  bool is_rational = 4;           // Whether curve is rational (has weights)
+  int32 order = 5;                // Order of the curve (degree + 1)
+  int32 cv_count = 6;             // Number of control vertices
+  int32 cv_stride = 7;            // Stride between control points
+  repeated double knots = 8;      // Knot vector
+  repeated double cvs = 9;        // Control vertices (flat array)
+  double width = 10;              // Line width for display
+  Color linecolor = 11;           // Line color
+  Xform xform = 12;               // Transformation matrix
+}
