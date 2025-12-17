@@ -4,6 +4,7 @@ package session_proto;
 
 // Xform message representing a 4x4 transformation matrix
 message Xform {
-  repeated double matrix = 1;  // 16 values in column-major order
-  string name = 2;  // Optional transformation name
+  string guid = 1;             // Unique identifier
+  string name = 2;             // Transformation name
+  repeated double matrix = 3;  // 16 values in column-major order
 }
