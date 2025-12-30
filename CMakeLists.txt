@@ -19,21 +19,15 @@ set(FETCHCONTENT_QUIET OFF)
 set(GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
 file(MAKE_DIRECTORY ${GENERATED_DIR})
 
-# Abseil configuration
-set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
-set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-if(MSVC)
-    set(ABSL_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
-endif()
-
-# Protobuf configuration
+# Protobuf configuration - use bundled abseil (simpler, avoids export conflicts)
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_CONFORMANCE OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_LIBPROTOC ON CACHE BOOL "" FORCE)
-set(protobuf_ABSL_PROVIDER "module" CACHE STRING "" FORCE)
+set(protobuf_BUILD_LIBUPB OFF CACHE BOOL "" FORCE)
+set(protobuf_BUILD_PROTOBUF_BINARIES ON CACHE BOOL "" FORCE)
+set(protobuf_INSTALL OFF CACHE BOOL "" FORCE)  # Disable install to avoid export conflicts
 set(protobuf_WITH_ZLIB OFF CACHE BOOL "" FORCE)
 set(utf8_range_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
@@ -41,21 +35,14 @@ if(MSVC)
     set(protobuf_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
 endif()
 
-# Fetch Abseil
-FetchContent_Declare(abseil
-    GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
-    GIT_TAG 20240722.0
-    GIT_SHALLOW TRUE
-)
-
-# Fetch Protobuf
+# Fetch only Protobuf (it bundles its own abseil in third_party)
 FetchContent_Declare(protobuf
     GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
     GIT_TAG v29.0
     GIT_SHALLOW TRUE
 )
 
-FetchContent_MakeAvailable(abseil protobuf)
+FetchContent_MakeAvailable(protobuf)
 
 # Generate C++ from .proto files
 file(GLOB PROTO_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.proto")
@@ -95,8 +82,8 @@ add_custom_target(package_release
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${GENERATED_DIR} ${CMAKE_BINARY_DIR}/release/include/generated
     # Copy protobuf headers from FetchContent source
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${protobuf_SOURCE_DIR}/src/google ${CMAKE_BINARY_DIR}/release/include/google
-    # Copy abseil headers from FetchContent source
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${abseil_SOURCE_DIR}/absl ${CMAKE_BINARY_DIR}/release/include/absl
+    # Copy abseil headers from protobuf's bundled third_party
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${protobuf_SOURCE_DIR}/third_party/abseil-cpp/absl ${CMAKE_BINARY_DIR}/release/include/absl
     COMMENT "Packaging release files"
 )
 
