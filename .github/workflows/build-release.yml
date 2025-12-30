@@ -6,15 +6,44 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-linux:
+    runs-on: ubuntu-latest
+    container: quay.io/pypa/manylinux_2_28_x86_64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cmake
+        run: pip3 install cmake
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/deps
+          key: deps-manylinux-x64-v1
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --target package_release --config Release
+
+      - name: Create archive
+        run: cd build/release && tar -czvf ../../session-proto-linux-x64.tar.gz .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: session-proto-linux-x64
+          path: session-proto-linux-x64.tar.gz
+
+  build-other:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            artifact: session-proto-linux-x64
           - os: macos-15
             artifact: session-proto-macos-arm64
-          - os: macos-15-intel
+          - os: macos-13
             artifact: session-proto-macos-x64
           - os: windows-latest
             artifact: session-proto-windows-x64
@@ -53,7 +82,7 @@ jobs:
             ${{ matrix.artifact }}.zip
 
   release:
-    needs: build
+    needs: [build-linux, build-other]
     runs-on: ubuntu-latest
     permissions:
       contents: write
