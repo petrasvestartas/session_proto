@@ -8,113 +8,102 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# MSVC: Use static runtime for all targets (avoids DLL dependencies)
+# MSVC: Use static runtime for all targets
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-include(ExternalProject)
+include(FetchContent)
+set(FETCHCONTENT_QUIET OFF)
 
-set(INSTALL_DIR "${CMAKE_BINARY_DIR}/install")
 set(GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
 file(MAKE_DIRECTORY ${GENERATED_DIR})
 
-# Build Abseil
-ExternalProject_Add(abseil_external
-    GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
-    GIT_TAG 20240722.0
-    UPDATE_COMMAND ""
-    CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}/abseil
-        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DABSL_ENABLE_INSTALL=ON
-        -DABSL_PROPAGATE_CXX_STD=ON
-        -DCMAKE_CXX_STANDARD=17
-        -DBUILD_SHARED_LIBS=OFF
-        -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
-        -DABSL_MSVC_STATIC_RUNTIME=ON
-)
-
-# Create monolithic Abseil archive
-if(APPLE)
-    add_custom_command(
-        OUTPUT ${INSTALL_DIR}/abseil/lib/libabsl_all.a
-        COMMAND sh -c "libtool -static -o ${INSTALL_DIR}/abseil/lib/libabsl_all.a ${INSTALL_DIR}/abseil/lib/libabsl_*.a"
-        DEPENDS abseil_external
-    )
-    add_custom_target(abseil_monolith DEPENDS ${INSTALL_DIR}/abseil/lib/libabsl_all.a)
-elseif(WIN32)
-    add_custom_command(
-        OUTPUT ${INSTALL_DIR}/abseil/lib/absl_all.lib
-        COMMAND powershell -Command "$$libs = Get-ChildItem '${INSTALL_DIR}/abseil/lib/absl_*.lib' | ForEach-Object { $$_.FullName }; lib.exe /OUT:${INSTALL_DIR}/abseil/lib/absl_all.lib $$libs"
-        DEPENDS abseil_external
-    )
-    add_custom_target(abseil_monolith DEPENDS ${INSTALL_DIR}/abseil/lib/absl_all.lib)
-else()
-    add_custom_command(
-        OUTPUT ${INSTALL_DIR}/abseil/lib/libabsl_all.a
-        COMMAND sh -c "ar -rcT ${INSTALL_DIR}/abseil/lib/libabsl_all.a ${INSTALL_DIR}/abseil/lib/libabsl_*.a"
-        DEPENDS abseil_external
-    )
-    add_custom_target(abseil_monolith DEPENDS ${INSTALL_DIR}/abseil/lib/libabsl_all.a)
+# Abseil configuration
+set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
+set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+if(MSVC)
+    set(ABSL_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
 endif()
 
-# Build protobuf
-ExternalProject_Add(protobuf_external
-    DEPENDS abseil_external
+# Protobuf configuration
+set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(protobuf_BUILD_CONFORMANCE OFF CACHE BOOL "" FORCE)
+set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(protobuf_BUILD_LIBPROTOC ON CACHE BOOL "" FORCE)
+set(protobuf_ABSL_PROVIDER "module" CACHE STRING "" FORCE)
+set(protobuf_WITH_ZLIB OFF CACHE BOOL "" FORCE)
+set(utf8_range_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+if(MSVC)
+    set(protobuf_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
+endif()
+
+# Fetch Abseil
+FetchContent_Declare(abseil
+    GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
+    GIT_TAG 20240722.0
+    GIT_SHALLOW TRUE
+)
+
+# Fetch Protobuf
+FetchContent_Declare(protobuf
     GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
     GIT_TAG v29.0
-    UPDATE_COMMAND ""
-    CMAKE_ARGS
-        -Dprotobuf_BUILD_TESTS=OFF
-        -Dprotobuf_BUILD_EXAMPLES=OFF
-        -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}/protobuf
-        -Dprotobuf_BUILD_SHARED_LIBS=OFF
-        -Dprotobuf_MSVC_STATIC_RUNTIME=ON
-        -Dprotobuf_ABSL_PROVIDER=package
-        -DCMAKE_PREFIX_PATH=${INSTALL_DIR}/abseil
-        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
+    GIT_SHALLOW TRUE
 )
+
+FetchContent_MakeAvailable(abseil protobuf)
 
 # Generate C++ from .proto files
 file(GLOB PROTO_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.proto")
 
-add_custom_target(generate_proto ALL DEPENDS protobuf_external)
+set(GENERATED_SOURCES "")
+set(GENERATED_HEADERS "")
 
 foreach(PROTO_FILE ${PROTO_FILES})
     get_filename_component(PROTO_NAME ${PROTO_FILE} NAME_WE)
-    add_custom_command(TARGET generate_proto POST_BUILD
-        COMMAND ${INSTALL_DIR}/protobuf/bin/protoc
+    set(GEN_CC "${GENERATED_DIR}/${PROTO_NAME}.pb.cc")
+    set(GEN_H "${GENERATED_DIR}/${PROTO_NAME}.pb.h")
+    list(APPEND GENERATED_SOURCES ${GEN_CC})
+    list(APPEND GENERATED_HEADERS ${GEN_H})
+
+    add_custom_command(
+        OUTPUT ${GEN_CC} ${GEN_H}
+        COMMAND protobuf::protoc
             --cpp_out=${GENERATED_DIR}
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
             ${PROTO_FILE}
+        DEPENDS protobuf::protoc ${PROTO_FILE}
+        COMMENT "Generating ${PROTO_NAME}.pb.cc/h"
+        VERBATIM
     )
 endforeach()
 
-# Package release
+add_custom_target(generate_proto ALL DEPENDS ${GENERATED_SOURCES} ${GENERATED_HEADERS})
+
+# Package release - collect headers and generated code
 add_custom_target(package_release
-    DEPENDS abseil_monolith protobuf_external generate_proto
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/release/lib
+    DEPENDS generate_proto
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/release/include/generated
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/release/include/protobuf
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/release/include/abseil
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/release/include/google/protobuf
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/release/include/absl
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/release/src
+    # Copy generated headers
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${GENERATED_DIR} ${CMAKE_BINARY_DIR}/release/include/generated
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${INSTALL_DIR}/protobuf/include ${CMAKE_BINARY_DIR}/release/include/protobuf
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${INSTALL_DIR}/abseil/include ${CMAKE_BINARY_DIR}/release/include/abseil
+    # Copy protobuf headers from FetchContent source
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${protobuf_SOURCE_DIR}/src/google ${CMAKE_BINARY_DIR}/release/include/google
+    # Copy abseil headers from FetchContent source
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${abseil_SOURCE_DIR}/absl ${CMAKE_BINARY_DIR}/release/include/absl
+    COMMENT "Packaging release files"
 )
 
-if(APPLE OR UNIX)
+# Copy generated .cc files to release/src
+foreach(GEN_CC ${GENERATED_SOURCES})
+    get_filename_component(CC_NAME ${GEN_CC} NAME)
     add_custom_command(TARGET package_release POST_BUILD
-        COMMAND sh -c "cp ${GENERATED_DIR}/*.cc ${CMAKE_BINARY_DIR}/release/src/"
-        COMMAND sh -c "cp ${INSTALL_DIR}/protobuf/lib/*.a ${CMAKE_BINARY_DIR}/release/lib/"
-        COMMAND sh -c "cp ${INSTALL_DIR}/abseil/lib/libabsl_all.a ${CMAKE_BINARY_DIR}/release/lib/"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${GEN_CC} ${CMAKE_BINARY_DIR}/release/src/${CC_NAME}
     )
-else()
-    add_custom_command(TARGET package_release POST_BUILD
-        COMMAND powershell -Command "Copy-Item '${GENERATED_DIR}/*.cc' '${CMAKE_BINARY_DIR}/release/src/'"
-        COMMAND powershell -Command "Copy-Item '${INSTALL_DIR}/protobuf/lib/*.lib' '${CMAKE_BINARY_DIR}/release/lib/'"
-        COMMAND powershell -Command "Copy-Item '${INSTALL_DIR}/abseil/lib/absl_all.lib' '${CMAKE_BINARY_DIR}/release/lib/'"
-    )
-endif()
+endforeach()

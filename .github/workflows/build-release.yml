@@ -24,11 +24,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache FetchContent dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: deps-${{ runner.os }}-v1
+
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        run: cmake --build build --target package_release -j4
+        run: cmake --build build --target package_release --config Release -j4
 
       - name: Create archive (Unix)
         if: runner.os != 'Windows'
@@ -60,12 +66,10 @@ jobs:
       - name: Get next version
         id: version
         run: |
-          # Get latest tag or start at v0.0.0
           LATEST=$(git tag -l 'v*' --sort=-v:refname | head -n1)
           if [ -z "$LATEST" ]; then
             LATEST="v0.0.0"
           fi
-          # Increment patch version
           MAJOR=$(echo $LATEST | cut -d. -f1)
           MINOR=$(echo $LATEST | cut -d. -f2)
           PATCH=$(echo $LATEST | cut -d. -f3)

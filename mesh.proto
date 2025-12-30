@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package session_proto;
 
-import "point.proto";
 import "color.proto";
 import "xform.proto";
 
