@@ -5,46 +5,76 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-# MSVC: Use static runtime for all targets
-if(MSVC)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-endif()
-
 include(FetchContent)
 set(FETCHCONTENT_QUIET OFF)
 
+set(DEPS_DIR "${CMAKE_BINARY_DIR}/deps")
 set(GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
+file(MAKE_DIRECTORY ${DEPS_DIR})
 file(MAKE_DIRECTORY ${GENERATED_DIR})
 
-# Protobuf configuration - use bundled abseil (simpler, avoids export conflicts)
-set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(protobuf_BUILD_CONFORMANCE OFF CACHE BOOL "" FORCE)
-set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-set(protobuf_BUILD_LIBPROTOC ON CACHE BOOL "" FORCE)
-set(protobuf_BUILD_LIBUPB OFF CACHE BOOL "" FORCE)
-set(protobuf_BUILD_PROTOBUF_BINARIES ON CACHE BOOL "" FORCE)
-set(protobuf_INSTALL OFF CACHE BOOL "" FORCE)  # Disable install to avoid export conflicts
-set(protobuf_WITH_ZLIB OFF CACHE BOOL "" FORCE)
-set(utf8_range_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
-set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-if(MSVC)
-    set(protobuf_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
+set(PROTOC_VERSION "29.0")
+
+# ============ DOWNLOAD PRE-BUILT PROTOC ============
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+        set(PROTOC_PLATFORM "linux-aarch_64")
+    else()
+        set(PROTOC_PLATFORM "linux-x86_64")
+    endif()
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
+        set(PROTOC_PLATFORM "osx-aarch_64")
+    else()
+        set(PROTOC_PLATFORM "osx-x86_64")
+    endif()
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(PROTOC_PLATFORM "win64")
 endif()
 
-# Fetch only Protobuf (it bundles its own abseil in third_party)
-FetchContent_Declare(protobuf
-    GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
-    GIT_TAG v29.0
-    GIT_SHALLOW TRUE
-)
+set(PROTOC_BIN "${DEPS_DIR}/protoc/bin/protoc")
+if(WIN32)
+    set(PROTOC_BIN "${DEPS_DIR}/protoc/bin/protoc.exe")
+endif()
 
-FetchContent_MakeAvailable(protobuf)
+if(NOT EXISTS "${DEPS_DIR}/protoc/bin")
+    message(STATUS "Downloading protoc ${PROTOC_VERSION} for ${PROTOC_PLATFORM}...")
+    FetchContent_Declare(protoc
+        URL https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip
+        SOURCE_DIR ${DEPS_DIR}/protoc
+    )
+    FetchContent_Populate(protoc)
+else()
+    message(STATUS "protoc already present")
+endif()
 
-# Generate C++ from .proto files
+# ============ DOWNLOAD PROTOBUF HEADERS (no build) ============
+if(NOT EXISTS "${DEPS_DIR}/protobuf/src/google")
+    message(STATUS "Downloading protobuf headers...")
+    FetchContent_Declare(protobuf
+        URL https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protobuf-${PROTOC_VERSION}.zip
+        SOURCE_DIR ${DEPS_DIR}/protobuf
+    )
+    FetchContent_Populate(protobuf)
+else()
+    message(STATUS "protobuf headers already present")
+endif()
+
+# ============ DOWNLOAD ABSEIL HEADERS (no build) ============
+if(NOT EXISTS "${DEPS_DIR}/abseil/absl")
+    message(STATUS "Downloading abseil headers...")
+    FetchContent_Declare(abseil
+        GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
+        GIT_TAG 20240722.0
+        GIT_SHALLOW TRUE
+        SOURCE_DIR ${DEPS_DIR}/abseil
+    )
+    FetchContent_Populate(abseil)
+else()
+    message(STATUS "abseil headers already present")
+endif()
+
+# ============ GENERATE PROTO FILES ============
 file(GLOB PROTO_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.proto")
 
 set(GENERATED_SOURCES "")
@@ -59,11 +89,11 @@ foreach(PROTO_FILE ${PROTO_FILES})
 
     add_custom_command(
         OUTPUT ${GEN_CC} ${GEN_H}
-        COMMAND protobuf::protoc
+        COMMAND ${PROTOC_BIN}
             --cpp_out=${GENERATED_DIR}
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
             ${PROTO_FILE}
-        DEPENDS protobuf::protoc ${PROTO_FILE}
+        DEPENDS ${PROTO_FILE}
         COMMENT "Generating ${PROTO_NAME}.pb.cc/h"
         VERBATIM
     )
@@ -71,23 +101,19 @@ endforeach()
 
 add_custom_target(generate_proto ALL DEPENDS ${GENERATED_SOURCES} ${GENERATED_HEADERS})
 
-# Package release - collect headers and generated code
+# ============ PACKAGE RELEASE ============
 add_custom_target(package_release
     DEPENDS generate_proto
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/release/include/generated
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/release/include/google/protobuf
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/release/include/google
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/release/include/absl
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/release/src
-    # Copy generated headers
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${GENERATED_DIR} ${CMAKE_BINARY_DIR}/release/include/generated
-    # Copy protobuf headers from FetchContent source
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${protobuf_SOURCE_DIR}/src/google ${CMAKE_BINARY_DIR}/release/include/google
-    # Copy abseil headers from protobuf's bundled third_party
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${protobuf_SOURCE_DIR}/third_party/abseil-cpp/absl ${CMAKE_BINARY_DIR}/release/include/absl
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${DEPS_DIR}/protobuf/src/google ${CMAKE_BINARY_DIR}/release/include/google
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${DEPS_DIR}/abseil/absl ${CMAKE_BINARY_DIR}/release/include/absl
     COMMENT "Packaging release files"
 )
 
-# Copy generated .cc files to release/src
 foreach(GEN_CC ${GENERATED_SOURCES})
     get_filename_component(CC_NAME ${GEN_CC} NAME)
     add_custom_command(TARGET package_release POST_BUILD
