@@ -12,6 +12,9 @@ if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
+# Required for linking static libs into PIE executables on Linux
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 include(FetchContent)
 set(FETCHCONTENT_QUIET OFF)
 
