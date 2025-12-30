@@ -6,6 +6,7 @@ on:
     paths:
       - '*.proto'
       - 'CMakeLists.txt'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
