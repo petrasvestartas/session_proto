@@ -185,8 +185,10 @@ elseif(WIN32)
         COMMENT "Creating monolithic abseil library"
     )
 else()
+    # Note: Must NOT use -T (thin archive) - it creates references that break when shipped
     add_custom_command(TARGET package_release POST_BUILD
-        COMMAND ar -rcT ${RELEASE_DIR}/lib/libabsl_all.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/base/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/strings/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/hash/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/container/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/time/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/numeric/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/synchronization/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/debugging/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/status/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/types/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/crc/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/log/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/flags/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/random/libabsl_*.a ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/profiling/libabsl_*.a
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${RELEASE_DIR}/lib/absl_tmp
+        COMMAND bash -c "cd ${RELEASE_DIR}/lib/absl_tmp && for lib in ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/*/libabsl_*.a; do ar -x \"$$lib\"; done && ar -rcs ../libabsl_all.a *.o && cd .. && rm -rf absl_tmp"
         COMMENT "Creating monolithic abseil library"
     )
 endif()
