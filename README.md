@@ -2,17 +2,6 @@
 
 Protobuf schemas for Session geometry kernel.
 
-## C++ Library Release
-
-Create a release to build pre-compiled protobuf libraries:
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-GitHub Actions builds for Linux, macOS, Windows and attaches artifacts to the release.
-
 ## Linking in CMake
 
 Download release and extract to `deps/session_proto/`, then:
