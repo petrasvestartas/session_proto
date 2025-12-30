@@ -18,7 +18,7 @@ jobs:
             artifact: session-proto-linux-x64
           - os: macos-15
             artifact: session-proto-macos-arm64
-          - os: macos-13
+          - os: macos-15-intel
             artifact: session-proto-macos-x64
           - os: windows-latest
             artifact: session-proto-windows-x64
