@@ -15,8 +15,10 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact: session-proto-linux-x64
-          - os: macos-latest
+          - os: macos-15
             artifact: session-proto-macos-arm64
+          - os: macos-13
+            artifact: session-proto-macos-x64
           - os: windows-latest
             artifact: session-proto-windows-x64
 
@@ -84,5 +86,6 @@ jobs:
           files: |
             session-proto-linux-x64/*.tar.gz
             session-proto-macos-arm64/*.tar.gz
+            session-proto-macos-x64/*.tar.gz
             session-proto-windows-x64/*.zip
           generate_release_notes: true
