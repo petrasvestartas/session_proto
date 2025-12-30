@@ -3,10 +3,6 @@ name: Build and Release
 on:
   push:
     branches: [main]
-    paths:
-      - '*.proto'
-      - 'CMakeLists.txt'
-      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
