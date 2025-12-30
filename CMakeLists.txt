@@ -8,6 +8,11 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# MSVC: Use static runtime for all targets (avoids DLL dependencies)
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 include(ExternalProject)
 
 set(INSTALL_DIR "${CMAKE_BINARY_DIR}/install")
@@ -26,6 +31,8 @@ ExternalProject_Add(abseil_external
         -DABSL_PROPAGATE_CXX_STD=ON
         -DCMAKE_CXX_STANDARD=17
         -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
+        -DABSL_MSVC_STATIC_RUNTIME=ON
 )
 
 # Create monolithic Abseil archive
@@ -35,23 +42,20 @@ if(APPLE)
         COMMAND sh -c "libtool -static -o ${INSTALL_DIR}/abseil/lib/libabsl_all.a ${INSTALL_DIR}/abseil/lib/libabsl_*.a"
         DEPENDS abseil_external
     )
+    add_custom_target(abseil_monolith DEPENDS ${INSTALL_DIR}/abseil/lib/libabsl_all.a)
 elseif(WIN32)
     add_custom_command(
         OUTPUT ${INSTALL_DIR}/abseil/lib/absl_all.lib
-        COMMAND powershell -Command "lib.exe /OUT:${INSTALL_DIR}/abseil/lib/absl_all.lib ${INSTALL_DIR}/abseil/lib/absl_*.lib"
+        COMMAND powershell -Command "$$libs = Get-ChildItem '${INSTALL_DIR}/abseil/lib/absl_*.lib' | ForEach-Object { $$_.FullName }; lib.exe /OUT:${INSTALL_DIR}/abseil/lib/absl_all.lib $$libs"
         DEPENDS abseil_external
     )
+    add_custom_target(abseil_monolith DEPENDS ${INSTALL_DIR}/abseil/lib/absl_all.lib)
 else()
     add_custom_command(
         OUTPUT ${INSTALL_DIR}/abseil/lib/libabsl_all.a
         COMMAND sh -c "ar -rcT ${INSTALL_DIR}/abseil/lib/libabsl_all.a ${INSTALL_DIR}/abseil/lib/libabsl_*.a"
         DEPENDS abseil_external
     )
-endif()
-
-if(WIN32)
-    add_custom_target(abseil_monolith DEPENDS ${INSTALL_DIR}/abseil/lib/absl_all.lib)
-else()
     add_custom_target(abseil_monolith DEPENDS ${INSTALL_DIR}/abseil/lib/libabsl_all.a)
 endif()
 
@@ -66,9 +70,11 @@ ExternalProject_Add(protobuf_external
         -Dprotobuf_BUILD_EXAMPLES=OFF
         -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}/protobuf
         -Dprotobuf_BUILD_SHARED_LIBS=OFF
+        -Dprotobuf_MSVC_STATIC_RUNTIME=ON
         -Dprotobuf_ABSL_PROVIDER=package
         -DCMAKE_PREFIX_PATH=${INSTALL_DIR}/abseil
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
 )
 
 # Generate C++ from .proto files
@@ -107,7 +113,8 @@ if(APPLE OR UNIX)
     )
 else()
     add_custom_command(TARGET package_release POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${INSTALL_DIR}/protobuf/lib/*.lib ${CMAKE_BINARY_DIR}/release/lib/
-        COMMAND ${CMAKE_COMMAND} -E copy ${INSTALL_DIR}/abseil/lib/absl_all.lib ${CMAKE_BINARY_DIR}/release/lib/
+        COMMAND powershell -Command "Copy-Item '${GENERATED_DIR}/*.cc' '${CMAKE_BINARY_DIR}/release/src/'"
+        COMMAND powershell -Command "Copy-Item '${INSTALL_DIR}/protobuf/lib/*.lib' '${CMAKE_BINARY_DIR}/release/lib/'"
+        COMMAND powershell -Command "Copy-Item '${INSTALL_DIR}/abseil/lib/absl_all.lib' '${CMAKE_BINARY_DIR}/release/lib/'"
     )
 endif()
