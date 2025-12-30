@@ -188,16 +188,26 @@ elseif(WIN32)
         COMMENT "Creating monolithic abseil library"
     )
 else()
-    # Create a script to merge abseil libraries
+    # Create a script to merge abseil libraries (handles duplicate .o names)
     file(WRITE ${CMAKE_BINARY_DIR}/merge_absl.sh
 "#!/bin/bash
 set -e
 RELEASE_DIR=\"$1\"
 BUILD_DIR=\"$2\"
-mkdir -p \"\${RELEASE_DIR}/lib/absl_tmp\"
-cd \"\${RELEASE_DIR}/lib/absl_tmp\"
+TMPDIR=\"\${RELEASE_DIR}/lib/absl_tmp\"
+mkdir -p \"\${TMPDIR}\"
+cd \"\${TMPDIR}\"
+COUNT=0
 find \"\${BUILD_DIR}/_deps/abseil-build/absl\" -name 'libabsl_*.a' | while read lib; do
+    LIBNAME=\$(basename \"\$lib\" .a)
+    mkdir -p \"\${LIBNAME}\"
+    cd \"\${LIBNAME}\"
     ar -x \"\$lib\"
+    for f in *.o; do
+        [ -f \"\$f\" ] && mv \"\$f\" \"../\${LIBNAME}_\${f}\"
+    done
+    cd ..
+    rmdir \"\${LIBNAME}\" 2>/dev/null || true
 done
 ar -rcs \"\${RELEASE_DIR}/lib/libabsl_all.a\" *.o
 cd ..
