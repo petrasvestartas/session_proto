@@ -13,8 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install cmake
-        run: dnf install -y cmake
+      - name: Install build tools
+        run: dnf install -y cmake binutils findutils
 
       - name: Cache dependencies
         uses: actions/cache@v4

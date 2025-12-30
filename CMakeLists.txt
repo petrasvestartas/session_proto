@@ -185,10 +185,23 @@ elseif(WIN32)
         COMMENT "Creating monolithic abseil library"
     )
 else()
-    # Note: Must NOT use -T (thin archive) - it creates references that break when shipped
+    # Create a script to merge abseil libraries
+    file(WRITE ${CMAKE_BINARY_DIR}/merge_absl.sh
+"#!/bin/bash
+set -e
+RELEASE_DIR=\"$1\"
+BUILD_DIR=\"$2\"
+mkdir -p \"\${RELEASE_DIR}/lib/absl_tmp\"
+cd \"\${RELEASE_DIR}/lib/absl_tmp\"
+find \"\${BUILD_DIR}/_deps/abseil-build/absl\" -name 'libabsl_*.a' | while read lib; do
+    ar -x \"\$lib\"
+done
+ar -rcs \"\${RELEASE_DIR}/lib/libabsl_all.a\" *.o
+cd ..
+rm -rf absl_tmp
+")
     add_custom_command(TARGET package_release POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${RELEASE_DIR}/lib/absl_tmp
-        COMMAND bash -c "cd ${RELEASE_DIR}/lib/absl_tmp && for lib in ${CMAKE_BINARY_DIR}/_deps/abseil-build/absl/*/libabsl_*.a; do ar -x \"$$lib\"; done && ar -rcs ../libabsl_all.a *.o && cd .. && rm -rf absl_tmp"
+        COMMAND bash ${CMAKE_BINARY_DIR}/merge_absl.sh ${RELEASE_DIR} ${CMAKE_BINARY_DIR}
         COMMENT "Creating monolithic abseil library"
     )
 endif()
