@@ -2,9 +2,30 @@
 
 Protobuf schemas for Session geometry kernel.
 
-## Linking in CMake
+## Build
 
-Download release and extract to `deps/session_proto/`, then:
+```bash
+mkdir -p build && cd build
+cmake ..
+cmake --build . -j8
+```
+
+Generated files in `build/generated/` (`.pb.cc` and `.pb.h`).
+
+## Package Release
+
+```bash
+cmake --build . --target package_release -j8
+```
+
+Output in `build/release/` with:
+- `lib/` - static libraries (protobuf, abseil)
+- `include/` - headers (protobuf, abseil, generated)
+- `src/` - generated `.pb.cc` files
+
+## Usage in CMake
+
+Download release and extract to `deps/session_proto/`:
 
 ```cmake
 set(PROTO_DIR "${CMAKE_SOURCE_DIR}/deps/session_proto")
@@ -17,7 +38,6 @@ target_include_directories(proto-objects PUBLIC
     ${PROTO_DIR}/include/abseil
 )
 
-# Link to your target
 target_link_libraries(your_target PRIVATE
     $<TARGET_OBJECTS:proto-objects>
     ${PROTO_DIR}/lib/libprotobuf.a
@@ -26,13 +46,3 @@ target_link_libraries(your_target PRIVATE
     ${PROTO_DIR}/lib/libabsl_all.a
 )
 ```
-
-## Local Build
-
-```bash
-mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build . --target package_release -j8
-```
-
-Output in `build/release/`.
