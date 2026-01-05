@@ -14,7 +14,6 @@ include(FetchContent)
 set(FETCHCONTENT_QUIET OFF)
 
 set(PROTOC_VERSION "33.2")
-set(INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
 set(GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
 file(MAKE_DIRECTORY ${GENERATED_DIR})
 
@@ -51,11 +50,11 @@ set(protobuf_BUILD_PROTOC_BINARIES OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_LIBPROTOC OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(protobuf_WITH_ZLIB OFF CACHE BOOL "" FORCE)
-set(protobuf_INSTALL ON CACHE BOOL "" FORCE)
-set(ABSL_ENABLE_INSTALL ON CACHE BOOL "" FORCE)
+set(protobuf_INSTALL OFF CACHE BOOL "" FORCE)
+set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "" FORCE)
+set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 if(MSVC)
     set(protobuf_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
     set(ABSL_MSVC_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
@@ -86,21 +85,45 @@ endforeach()
 
 add_custom_target(generate_proto ALL DEPENDS ${GENERATED_SOURCES})
 
-# ============ PACKAGE RELEASE (after cmake --install) ============
+# ============ PACKAGE RELEASE ============
 set(RELEASE_DIR ${CMAKE_BINARY_DIR}/release)
+set(PROTOBUF_SRC ${CMAKE_BINARY_DIR}/_deps/protobuf-src)
+set(ABSL_SRC ${CMAKE_BINARY_DIR}/_deps/absl-src)
 
 add_custom_target(package_release
     DEPENDS generate_proto libprotobuf
-    # Run cmake --install first
-    COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --prefix ${INSTALL_PREFIX}
     # Create release structure
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${RELEASE_DIR}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${RELEASE_DIR}/lib
     COMMAND ${CMAKE_COMMAND} -E make_directory ${RELEASE_DIR}/src
-    # Copy installed files (lib, include from cmake --install)
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${INSTALL_PREFIX}/lib ${RELEASE_DIR}/lib
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${INSTALL_PREFIX}/include ${RELEASE_DIR}/include
-    # Add generated proto files
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${RELEASE_DIR}/include/generated
+    # Copy generated proto files
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${GENERATED_DIR} ${RELEASE_DIR}/include/generated
     COMMAND ${CMAKE_COMMAND} -E copy ${GENERATED_SOURCES} ${RELEASE_DIR}/src/
-    COMMENT "Packaging release from installed files"
+    # Copy protobuf headers
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROTOBUF_SRC}/src/google ${RELEASE_DIR}/include/google
+    # Copy abseil headers
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${ABSL_SRC}/absl ${RELEASE_DIR}/include/absl
+    # Copy utf8_range headers
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROTOBUF_SRC}/third_party/utf8_range ${RELEASE_DIR}/include/utf8_range
+    COMMENT "Packaging release"
 )
+
+# Copy static libraries (platform-specific paths)
+if(MSVC)
+    add_custom_command(TARGET package_release POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/_deps/protobuf-build/Release ${RELEASE_DIR}/lib
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/_deps/absl-build/absl ${RELEASE_DIR}/lib/absl
+        COMMENT "Copying Windows libraries"
+    )
+else()
+    file(WRITE ${CMAKE_BINARY_DIR}/copy_libs.sh
+"#!/bin/sh
+find ${CMAKE_BINARY_DIR}/_deps/protobuf-build -name '*.a' -exec cp {} ${RELEASE_DIR}/lib/ \\;
+find ${CMAKE_BINARY_DIR}/_deps/absl-build -name '*.a' -exec cp {} ${RELEASE_DIR}/lib/ \\;
+")
+    add_custom_command(TARGET package_release POST_BUILD
+        COMMAND chmod +x ${CMAKE_BINARY_DIR}/copy_libs.sh
+        COMMAND ${CMAKE_BINARY_DIR}/copy_libs.sh
+        COMMENT "Copying Unix libraries"
+    )
+endif()
