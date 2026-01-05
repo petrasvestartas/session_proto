@@ -23,7 +23,7 @@ set(DEPS_DIR "${CMAKE_BINARY_DIR}/deps")
 file(MAKE_DIRECTORY ${GENERATED_DIR})
 file(MAKE_DIRECTORY ${DEPS_DIR})
 
-set(PROTOC_VERSION "29.0")
+set(PROTOC_VERSION "33.2")
 
 # ============ DOWNLOAD PRE-BUILT PROTOC (for code generation only) ============
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -148,6 +148,9 @@ add_custom_target(package_release
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${GENERATED_DIR} ${RELEASE_DIR}/include/generated
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${protobuf_SOURCE_DIR}/src/google ${RELEASE_DIR}/include/google
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${abseil_SOURCE_DIR}/absl ${RELEASE_DIR}/include/absl
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${protobuf_SOURCE_DIR}/third_party/utf8_range ${RELEASE_DIR}/include/utf8_range
+    COMMAND ${CMAKE_COMMAND} -E copy ${protobuf_SOURCE_DIR}/third_party/utf8_range/utf8_validity.h ${RELEASE_DIR}/include/
+    COMMAND ${CMAKE_COMMAND} -E copy ${protobuf_SOURCE_DIR}/third_party/utf8_range/utf8_range.h ${RELEASE_DIR}/include/
     COMMENT "Packaging release files"
 )
 
