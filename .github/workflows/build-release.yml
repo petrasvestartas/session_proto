@@ -6,37 +6,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-22.04
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: build/deps
-          key: deps-ubuntu22-x64-v1
-
-      - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build
-        run: cmake --build build --target package_release --config Release
-
-      - name: Create archive
-        run: cd build/release && tar -czvf ../../session-proto-linux-x64.tar.gz .
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: session-proto-linux-x64
-          path: session-proto-linux-x64.tar.gz
-
-  build-other:
+  build:
     strategy:
       matrix:
         include:
+          - os: ubuntu-22.04
+            artifact: session-proto-linux-x64
           - os: macos-15
             artifact: session-proto-macos-arm64
           - os: macos-15-intel
@@ -53,7 +28,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build/deps
-          key: deps-${{ runner.os }}-${{ runner.arch }}-v1
+          key: deps-${{ matrix.artifact }}-v1
 
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
@@ -78,7 +53,7 @@ jobs:
             ${{ matrix.artifact }}.zip
 
   release:
-    needs: [build-linux, build-other]
+    needs: [build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
