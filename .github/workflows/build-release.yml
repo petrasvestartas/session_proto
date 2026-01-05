@@ -7,20 +7,16 @@ on:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-latest
-    container: quay.io/pypa/manylinux_2_28_x86_64
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install build tools
-        run: dnf install -y cmake binutils findutils
 
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
           path: build/deps
-          key: deps-manylinux-x64-v3
+          key: deps-ubuntu22-x64-v1
 
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
