@@ -27,8 +27,10 @@ jobs:
       - name: Cache FetchContent
         uses: actions/cache@v4
         with:
-          path: build/_deps
-          key: deps-${{ matrix.artifact }}-v33.2-2
+          path: |
+            build/_deps
+            build/protoc
+          key: deps-${{ matrix.artifact }}-v33.2-3
 
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
