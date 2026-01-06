@@ -24,23 +24,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install protoc (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
-
-      - name: Install protoc (macOS)
-        if: runner.os == 'macOS'
-        run: brew install protobuf
-
-      - name: Install protoc (Windows)
-        if: runner.os == 'Windows'
-        run: choco install protoc -y
-
       - name: Cache FetchContent
         uses: actions/cache@v4
         with:
-          path: build/_deps
-          key: deps-${{ matrix.artifact }}-v33.2-4
+          path: |
+            build/_deps
+            build/protoc
+          key: deps-${{ matrix.artifact }}-v33.2-5
 
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
