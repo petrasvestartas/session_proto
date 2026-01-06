@@ -110,9 +110,13 @@ add_custom_target(package_release
 
 # Copy static libraries (platform-specific paths)
 if(MSVC)
+    # Create PowerShell script to copy all .lib files recursively
+    file(WRITE ${CMAKE_BINARY_DIR}/copy_libs.ps1
+"Get-ChildItem -Path '${CMAKE_BINARY_DIR}/_deps/protobuf-build' -Filter '*.lib' -Recurse | ForEach-Object { Copy-Item $_.FullName -Destination '${RELEASE_DIR}/lib/' -Force }
+Get-ChildItem -Path '${CMAKE_BINARY_DIR}/_deps/absl-build' -Filter '*.lib' -Recurse | ForEach-Object { Copy-Item $_.FullName -Destination '${RELEASE_DIR}/lib/' -Force }
+")
     add_custom_command(TARGET package_release POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/_deps/protobuf-build/Release ${RELEASE_DIR}/lib
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/_deps/absl-build/absl ${RELEASE_DIR}/lib/absl
+        COMMAND powershell -ExecutionPolicy Bypass -File ${CMAKE_BINARY_DIR}/copy_libs.ps1
         COMMENT "Copying Windows libraries"
     )
 else()
