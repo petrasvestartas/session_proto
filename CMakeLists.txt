@@ -17,29 +17,35 @@ set(PROTOC_VERSION "33.2")
 set(GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
 file(MAKE_DIRECTORY ${GENERATED_DIR})
 
-# ============ DOWNLOAD PRE-BUILT PROTOC ============
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
-        set(PROTOC_PLATFORM "linux-aarch_64")
-    else()
-        set(PROTOC_PLATFORM "linux-x86_64")
+# ============ FIND OR DOWNLOAD PROTOC ============
+find_program(SYSTEM_PROTOC protoc)
+if(SYSTEM_PROTOC)
+    set(PROTOC_BIN "${SYSTEM_PROTOC}")
+    message(STATUS "Using system protoc: ${PROTOC_BIN}")
+else()
+    message(STATUS "System protoc not found, downloading...")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+            set(PROTOC_PLATFORM "linux-aarch_64")
+        else()
+            set(PROTOC_PLATFORM "linux-x86_64")
+        endif()
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
+            set(PROTOC_PLATFORM "osx-aarch_64")
+        else()
+            set(PROTOC_PLATFORM "osx-x86_64")
+        endif()
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        set(PROTOC_PLATFORM "win64")
     endif()
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
-        set(PROTOC_PLATFORM "osx-aarch_64")
-    else()
-        set(PROTOC_PLATFORM "osx-x86_64")
-    endif()
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(PROTOC_PLATFORM "win64")
+    FetchContent_Declare(protoc
+        URL https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip
+        SOURCE_DIR ${CMAKE_BINARY_DIR}/protoc
+    )
+    FetchContent_MakeAvailable(protoc)
+    set(PROTOC_BIN "${CMAKE_BINARY_DIR}/protoc/bin/protoc${CMAKE_EXECUTABLE_SUFFIX}")
 endif()
-
-FetchContent_Declare(protoc
-    URL https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip
-    SOURCE_DIR ${CMAKE_BINARY_DIR}/protoc
-)
-FetchContent_MakeAvailable(protoc)
-set(PROTOC_BIN "${CMAKE_BINARY_DIR}/protoc/bin/protoc${CMAKE_EXECUTABLE_SUFFIX}")
 
 # ============ FETCH AND BUILD PROTOBUF (official way) ============
 set(protobuf_FORCE_FETCH_DEPENDENCIES ON CACHE BOOL "" FORCE)
