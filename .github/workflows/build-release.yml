@@ -28,14 +28,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build/_deps
-          key: deps-${{ matrix.artifact }}-v33.2
+          key: deps-${{ matrix.artifact }}-v33.2-2
 
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build (Unix)
         if: runner.os != 'Windows'
-        run: cmake --build build --target package_release -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+        run: cmake --build build --target package_release --verbose -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
 
       - name: Build (Windows)
         if: runner.os == 'Windows'
