@@ -110,14 +110,13 @@ add_custom_target(package_release
 
 # Copy static libraries (platform-specific paths)
 if(MSVC)
+    file(WRITE ${CMAKE_BINARY_DIR}/copy_libs.ps1
+"Get-ChildItem -Path '${CMAKE_BINARY_DIR}/_deps/protobuf-build' -Recurse -Filter '*.lib' | Where-Object { $_.FullName -match 'Release' } | Copy-Item -Destination '${RELEASE_DIR}/lib/' -Force
+Get-ChildItem -Path '${CMAKE_BINARY_DIR}/_deps/absl-build' -Recurse -Filter '*.lib' | Where-Object { $_.FullName -match 'Release' } | Copy-Item -Destination '${RELEASE_DIR}/lib/' -Force
+")
     add_custom_command(TARGET package_release POST_BUILD
-        # Copy main protobuf libraries
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/_deps/protobuf-build/Release ${RELEASE_DIR}/lib
-        # Copy utf8_range/utf8_validity library from subdirectory
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/_deps/protobuf-build/third_party/utf8_range/Release ${RELEASE_DIR}/lib
-        # Copy abseil libraries
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/_deps/absl-build/absl ${RELEASE_DIR}/lib/absl
-        COMMENT "Copying Windows libraries"
+        COMMAND powershell -ExecutionPolicy Bypass -File ${CMAKE_BINARY_DIR}/copy_libs.ps1
+        COMMENT "Copying Windows libraries (flattened)"
     )
 else()
     file(WRITE ${CMAKE_BINARY_DIR}/copy_libs.sh
