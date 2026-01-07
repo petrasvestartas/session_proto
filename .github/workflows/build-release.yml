@@ -34,7 +34,7 @@ jobs:
           path: |
             build/_deps
             build/protoc
-          key: deps-${{ matrix.artifact }}-v33.2-cpp23-md-1
+          key: deps-${{ matrix.artifact }}-v33.2-cpp23-md-2
 
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
