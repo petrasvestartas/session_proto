@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "color.proto";
+import "xform.proto";
+
+// NurbsSurface message representing a Non-Uniform Rational B-Spline surface
+message NurbsSurface {
+  string guid = 1;                // Unique identifier
+  string name = 2;                // Surface name
+  int32 dimension = 3;            // Dimension (typically 3)
+  bool is_rational = 4;           // Whether surface is rational (has weights)
+  int32 order_u = 5;              // Order in U direction (degree + 1)
+  int32 order_v = 6;              // Order in V direction (degree + 1)
+  int32 cv_count_u = 7;           // Number of control vertices in U
+  int32 cv_count_v = 8;           // Number of control vertices in V
+  int32 cv_stride_u = 9;          // Stride in U direction
+  int32 cv_stride_v = 10;         // Stride in V direction
+  repeated double knots_u = 11;   // Knot vector in U direction
+  repeated double knots_v = 12;   // Knot vector in V direction
+  repeated double cvs = 13;       // Control vertices (flat array)
+  double width = 14;              // Line width for display
+  Color surfacecolor = 15;        // Surface color
+  Xform xform = 16;               // Transformation matrix
+}
