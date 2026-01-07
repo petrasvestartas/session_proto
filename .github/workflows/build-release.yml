@@ -27,8 +27,6 @@ jobs:
       - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
-        with:
-          toolset: 14.29
 
       - name: Cache FetchContent
         uses: actions/cache@v4
@@ -36,7 +34,7 @@ jobs:
           path: |
             build/_deps
             build/protoc
-          key: deps-${{ matrix.artifact }}-v33.2-5
+          key: deps-${{ matrix.artifact }}-v33.2-cpp23-1
 
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
