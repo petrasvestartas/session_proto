@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package session_proto;
 
+// Version: v0.0.20
+
 import "color.proto";
 import "xform.proto";
 
