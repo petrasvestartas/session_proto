@@ -1,0 +1,138 @@
+cmake_minimum_required(VERSION 3.19)
+include(CMakeCommon.cmake)
+
+#=============================================================================
+# Global Configuration
+#=============================================================================
+project(KumikiArchicad VERSION 1.0.0)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+
+# Set C++ standard globally
+if (NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+
+# Default build type
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+# enable_testing()
+option(CLANG_TIDY   "Enable clang-tidy checks during compilation" OFF)
+
+# MSVC optimizations for release builds
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL")
+    set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CMAKE_STATIC_LINKER_FLAGS_RELEASE} /LTCG")
+    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /LTCG")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG")
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+endif()
+
+#=============================================================================
+# ArchiCAD API Detection and Setup
+#=============================================================================
+if(NOT AC_API_DEVKIT_DIR)
+    set(AC_API_DEVKIT_DIR $ENV{AC_API_DEVKIT_DIR} CACHE PATH "API DevKit directory.")
+endif()
+
+set(ACAPINC_FILE_LOCATION ${AC_API_DEVKIT_DIR}/Support/Inc/ACAPinc.h)
+
+if(NOT DEFINED AC_VERSION)
+    message(FATAL_ERROR "AC_VERSION is not set!")
+endif()
+
+message(STATUS "ArchiCAD version: ${AC_VERSION}")
+message(STATUS "DevKit directory: ${AC_API_DEVKIT_DIR}")
+
+function(SetCompilerParams target)
+    target_compile_options(${target} PUBLIC "$<$<CONFIG:Debug>:-DDEBUG>")
+
+    if(WIN32)
+        target_compile_options(${target} PUBLIC
+            /W4 /WX /MP
+            /Zc:wchar_t-
+            /wd4499  # Suppress specific warnings
+            /wd5208
+        )
+        target_compile_definitions(${target} PUBLIC
+            UNICODE
+            _UNICODE
+        )
+    else()
+        target_compile_options(${target} PUBLIC
+            -Wall -Wextra
+            -fvisibility=hidden
+            -Wno-multichar
+            -Wno-ctor-dtor-privacy
+            -Wno-invalid-offsetof
+            -Wno-ignored-qualifiers
+            -Wno-reorder
+            -Wno-overloaded-virtual
+            -Wno-unused-parameter
+            -Wno-deprecated
+        )
+        target_compile_definitions(${target} PUBLIC
+            macintosh=1
+        )
+    endif()
+
+    # ArchiCAD version definition
+    target_compile_definitions(${target} PUBLIC
+        AC${AC_VERSION}
+        ACExtension
+    )
+endfunction()
+
+#=============================================================================
+# AddOn Configuration
+#=============================================================================
+# ReadConfigJson()
+
+# find_package(Protobuf CONFIG REQUIRED) the version on vcpkg is 5.29.x, we need 6.31.1
+include(FetchContent)
+
+FetchContent_Declare(
+    protobuf
+    GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
+    GIT_TAG        v31.1
+)
+set(protobuf_BUILD_TESTS OFF)
+set(protobuf_BUILD_EXAMPLES OFF)
+set(protobuf_MSVC_STATIC_RUNTIME OFF)
+set(protobuf_WITH_ZLIB OFF)
+
+FetchContent_MakeAvailable(protobuf)
+
+set(LIB_INCLUDE_DIRS
+    ${CMAKE_SOURCE_DIR}/libs/json/include
+    ${CMAKE_SOURCE_DIR}/libs/spdlog/include
+    ${CMAKE_SOURCE_DIR}/libs/sqlite/include
+    ${CMAKE_SOURCE_DIR}/libs/sha/include
+    ${CMAKE_SOURCE_DIR}/libs/md5/include
+)
+
+set(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/${AC_ADDON_LANGUAGE}")
+
+add_subdirectory(libs/json)
+add_subdirectory(libs/spdlog)
+add_subdirectory(libs/sqlite)
+add_subdirectory(libs/sha)
+add_subdirectory(libs/md5)
+
+add_subdirectory(Src/Kumiki/CompasArchicad)
+add_subdirectory(Src/Kumiki/SpeckleArchicad)
+add_subdirectory(Src/Kumiki/AddOn)
+
+set_target_properties(json spdlog sqlite sha md5 PROPERTIES FOLDER Libs)
+
+message(STATUS "Configuration completed successfully!")
+message(STATUS "CLANG_TIDY=${CLANG_TIDY}")
+
+#=============================================================================
+# Code Formatting Setup
+#=============================================================================
+SetupCodeFormatting()
