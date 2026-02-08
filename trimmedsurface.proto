@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "color.proto";
+import "xform.proto";
+import "nurbssurface.proto";
+import "nurbscurve.proto";
+
+// TrimmedSurface message representing a NURBS surface with trim boundaries
+message TrimmedSurface {
+  string guid = 1;                        // Unique identifier
+  string name = 2;                        // Surface name
+  NurbsSurface surface = 3;               // Underlying untrimmed surface
+  NurbsCurve outer_loop = 4;              // Outer trim boundary (2D UV curve)
+  repeated NurbsCurve inner_loops = 5;    // Inner trim loops (holes, 2D UV curves)
+  double width = 6;                       // Line width for display
+  Color surfacecolor = 7;                 // Surface color
+  Xform xform = 8;                        // Transformation matrix
+}

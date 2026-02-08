@@ -6,6 +6,7 @@ package session_proto;
 
 import "color.proto";
 import "xform.proto";
+import "nurbscurve.proto";
 
 // NurbsSurface message representing a Non-Uniform Rational B-Spline surface
 message NurbsSurface {
@@ -25,4 +26,6 @@ message NurbsSurface {
   double width = 14;              // Line width for display
   Color surfacecolor = 15;        // Surface color
   Xform xform = 16;               // Transformation matrix
+  NurbsCurve outer_loop = 17;      // Outer trim loop (2D curve in UV space)
+  repeated NurbsCurve inner_loops = 18;  // Inner trim loops (holes)
 }
