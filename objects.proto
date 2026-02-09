@@ -11,6 +11,8 @@ import "pointcloud.proto";
 import "mesh.proto";
 import "cylinder.proto";
 import "arrow.proto";
+import "nurbscurve.proto";
+import "nurbssurface.proto";
 
 // Objects message representing a collection of all geometry types
 message Objects {
@@ -25,4 +27,6 @@ message Objects {
   repeated Mesh meshes = 9;                 // Collection of meshes
   repeated Cylinder cylinders = 10;         // Collection of cylinders
   repeated Arrow arrows = 11;               // Collection of arrows
+  repeated NurbsCurve nurbscurves = 12;     // Collection of NURBS curves
+  repeated NurbsSurface nurbssurfaces = 13; // Collection of NURBS surfaces
 }
