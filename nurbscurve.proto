@@ -17,6 +17,7 @@ message NurbsCurve {
   repeated double knots = 8;      // Knot vector
   repeated double cvs = 9;        // Control vertices (flat array)
   double width = 10;              // Line width for display
-  Color linecolor = 11;           // Line color
+  repeated Color pointcolors = 11; // Point colors (RGBA)
   Xform xform = 12;               // Transformation matrix
+  repeated Color linecolors = 13;  // Line colors (RGBA)
 }

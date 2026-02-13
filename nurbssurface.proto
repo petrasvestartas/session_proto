@@ -24,8 +24,10 @@ message NurbsSurface {
   repeated double knots_v = 12;   // Knot vector in V direction
   repeated double cvs = 13;       // Control vertices (flat array)
   double width = 14;              // Line width for display
-  Color surfacecolor = 15;        // Surface color
+  repeated Color pointcolors = 15; // Point colors (RGBA)
   Xform xform = 16;               // Transformation matrix
   NurbsCurve outer_loop = 17;      // Outer trim loop (2D curve in UV space)
   repeated NurbsCurve inner_loops = 18;  // Inner trim loops (holes)
+  repeated Color facecolors = 19;  // Face colors (RGBA)
+  repeated Color linecolors = 20;  // Line colors (RGBA)
 }

@@ -9,8 +9,6 @@ import "boundingbox.proto";
 import "polyline.proto";
 import "pointcloud.proto";
 import "mesh.proto";
-import "cylinder.proto";
-import "arrow.proto";
 import "nurbscurve.proto";
 import "nurbssurface.proto";
 
@@ -25,8 +23,6 @@ message Objects {
   repeated Polyline polylines = 7;          // Collection of polylines
   repeated PointCloud pointclouds = 8;      // Collection of point clouds
   repeated Mesh meshes = 9;                 // Collection of meshes
-  repeated Cylinder cylinders = 10;         // Collection of cylinders
-  repeated Arrow arrows = 11;               // Collection of arrows
   repeated NurbsCurve nurbscurves = 12;     // Collection of NURBS curves
   repeated NurbsSurface nurbssurfaces = 13; // Collection of NURBS surfaces
 }
