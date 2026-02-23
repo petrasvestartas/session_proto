@@ -6,7 +6,6 @@ package session_proto;
 
 import "color.proto";
 import "xform.proto";
-import "nurbscurve.proto";
 import "mesh.proto";
 
 // NurbsSurface message representing a Non-Uniform Rational B-Spline surface
@@ -27,8 +26,6 @@ message NurbsSurface {
   double width = 14;              // Line width for display
   repeated Color pointcolors = 15; // Point colors (RGBA)
   Xform xform = 16;               // Transformation matrix
-  NurbsCurve outer_loop = 17;      // Outer trim loop (2D curve in UV space)
-  repeated NurbsCurve inner_loops = 18;  // Inner trim loops (holes)
   repeated Color facecolors = 19;  // Face colors (RGBA)
   repeated Color linecolors = 20;  // Line colors (RGBA)
   Mesh cached_mesh = 21;           // Cached tessellation mesh

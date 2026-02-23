@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "color.proto";
+import "xform.proto";
+import "nurbssurface.proto";
+import "nurbscurve.proto";
+import "point.proto";
+
+enum BRepTrimType {
+  TRIM_BOUNDARY = 0;
+  TRIM_MATED = 1;
+  TRIM_SEAM = 2;
+  TRIM_SINGULAR = 3;
+}
+
+enum BRepLoopType {
+  LOOP_OUTER = 0;
+  LOOP_INNER = 1;
+}
+
+message BRepVertex {
+  int32 point_index = 1;
+  repeated int32 edge_indices = 2;
+}
+
+message BRepEdge {
+  int32 curve_3d_index = 1;
+  int32 start_vertex = 2;
+  int32 end_vertex = 3;
+  repeated int32 trim_indices = 4;
+}
+
+message BRepTrim {
+  int32 curve_2d_index = 1;
+  int32 edge_index = 2;
+  int32 loop_index = 3;
+  bool reversed = 4;
+  BRepTrimType type = 5;
+}
+
+message BRepLoop {
+  repeated int32 trim_indices = 1;
+  int32 face_index = 2;
+  BRepLoopType type = 3;
+}
+
+message BRepFace {
+  int32 surface_index = 1;
+  repeated int32 loop_indices = 2;
+  bool reversed = 3;
+}
+
+message BRep {
+  string guid = 1;
+  string name = 2;
+  repeated NurbsCurve curves_2d = 3;
+  repeated NurbsCurve curves_3d = 4;
+  repeated NurbsSurface surfaces = 5;
+  repeated Point vertices = 6;
+  repeated BRepVertex topology_vertices = 7;
+  repeated BRepEdge topology_edges = 8;
+  repeated BRepTrim trims = 9;
+  repeated BRepLoop loops = 10;
+  repeated BRepFace faces = 11;
+  double width = 12;
+  Color surfacecolor = 13;
+  Xform xform = 14;
+}
