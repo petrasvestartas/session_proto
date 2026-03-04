@@ -47,4 +47,6 @@ message Mesh {
   repeated Color linecolors = 12;               // Edge colors
   repeated double widths = 13;                  // Edge widths
   Xform xform = 14;                             // Transformation matrix
+  Color objectcolor = 15;                       // Object color
+  int32 color_mode = 16;                        // Active color mode (0=objectcolor,1=pointcolors,2=facecolors,3=none)
 }
