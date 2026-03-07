@@ -31,6 +31,11 @@ message EdgeData {
   map<string, double> attributes = 3;  // Custom edge attributes
 }
 
+// Flat triangle list (3 vertex keys per triangle)
+message TriList {
+  repeated uint64 vertices = 1;
+}
+
 // Mesh message representing a halfedge mesh data structure
 message Mesh {
   string guid = 1;                              // Unique identifier
@@ -49,4 +54,5 @@ message Mesh {
   Xform xform = 14;                             // Transformation matrix
   Color objectcolor = 15;                       // Object color
   int32 color_mode = 16;                        // Active color mode (0=objectcolor,1=pointcolors,2=facecolors,3=none)
+  map<uint64, TriList> triangulation = 17;      // Face triangulation (face_key -> flat triangle vertex keys)
 }
