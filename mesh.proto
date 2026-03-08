@@ -18,10 +18,16 @@ message HalfedgeMap {
   map<uint64, uint64> neighbors = 1;  // vertex_key -> halfedge_key
 }
 
+// Hole ring (inner ring for face with holes)
+message HoleRing {
+  repeated uint64 vertices = 1;
+}
+
 // Face data
 message FaceData {
   repeated uint64 vertices = 1;  // Vertex indices in face
   map<string, double> attributes = 2;  // Custom face attributes
+  repeated HoleRing holes = 3;  // Inner rings (holes)
 }
 
 // Edge data
