@@ -50,6 +50,7 @@ message BRepFace {
   int32 surface_index = 1;
   repeated int32 loop_indices = 2;
   bool reversed = 3;
+  Color facecolor = 4;
 }
 
 message BRep {
