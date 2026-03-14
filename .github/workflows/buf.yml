@@ -1,0 +1,16 @@
+name: Protobuf breaking change check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  buf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-action@v1
+        with:
+          breaking_against: 'https://github.com/petrasvestartas/session_proto.git#branch=main'
