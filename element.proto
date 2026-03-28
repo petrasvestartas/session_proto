@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "xform.proto";
+
+message Element {
+  string name = 1;
+  string guid = 2;
+  string geometry_type = 3;
+  bytes geometry_data = 4;
+  Xform session_transformation = 5;
+}

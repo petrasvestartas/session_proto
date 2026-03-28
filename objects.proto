@@ -12,6 +12,7 @@ import "mesh.proto";
 import "nurbscurve.proto";
 import "nurbssurface.proto";
 import "brep.proto";
+import "element.proto";
 
 // Objects message representing a collection of all geometry types
 message Objects {
@@ -27,4 +28,5 @@ message Objects {
   repeated NurbsCurve nurbscurves = 12;     // Collection of NURBS curves
   repeated NurbsSurface nurbssurfaces = 13; // Collection of NURBS surfaces
   repeated BRep breps = 14;                 // Collection of BReps
+  repeated Element elements = 15;           // Collection of elements
 }
