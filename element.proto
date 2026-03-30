@@ -4,10 +4,11 @@ package session_proto;
 
 import "xform.proto";
 
+// Element message wrapping geometry with transformation and metadata
 message Element {
-  string name = 1;
-  string guid = 2;
-  string geometry_type = 3;
-  bytes geometry_data = 4;
-  Xform session_transformation = 5;
+  string name = 1;                      // Element name
+  string guid = 2;                      // Unique identifier
+  string geometry_type = 3;             // Class name for polymorphic decode
+  bytes geometry_data = 4;              // Serialized geometry bytes
+  Xform session_transformation = 5;    // Transformation to session space
 }
