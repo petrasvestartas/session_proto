@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package session_proto;
+
+// Matrix message representing an NxM matrix
+message Matrix {
+  string guid = 1;            // Unique identifier
+  string name = 2;            // Matrix name
+  int32 rows = 3;             // Number of rows
+  int32 cols = 4;             // Number of columns
+  repeated double data = 5;   // Row-major flat data, length = rows * cols
+}
