@@ -3,6 +3,17 @@ syntax = "proto3";
 package session_proto;
 
 import "xform.proto";
+import "plane.proto";
+
+message JointConnection {
+  int32 joint_id = 1;
+  bool is_male = 2;
+  double parameter = 3;
+}
+
+message FaceJoints {
+  repeated JointConnection connections = 1;
+}
 
 // Element message wrapping geometry with transformation and metadata
 message Element {
@@ -11,4 +22,8 @@ message Element {
   string geometry_type = 3;             // Class name for polymorphic decode
   bytes geometry_data = 4;              // Serialized geometry bytes
   Xform session_transformation = 5;    // Transformation to session space
+  repeated int32 joint_types = 6;       // Per-edge joint type codes
+  repeated FaceJoints j_mf = 7;        // Per-face joint connections
+  string key = 8;                       // Component identifier
+  Plane component_plane = 9;           // Reference plane for the component
 }

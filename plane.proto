@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package session_proto;
 
+import "color.proto";
 import "xform.proto";
 
 // Plane message representing a 3D plane with minimal storage
@@ -13,4 +14,5 @@ message Plane {
   repeated double frame = 3;    // Frame: origin(3) + x_axis(3) + y_axis(3) + z_axis(3) = 12 doubles
   double width = 4;             // Width for plane visualization
   Xform xform = 5;              // Transformation matrix
+  Color linecolor = 6;           // Color of the plane
 }
