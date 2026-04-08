@@ -6,6 +6,7 @@ import "objects.proto";
 import "tree.proto";
 import "graph.proto";
 import "boundingbox.proto";
+import "feature.proto";
 
 // Session message representing a complete session with geometry and hierarchy
 message Session {
@@ -15,4 +16,5 @@ message Session {
   Tree tree = 4;            // Tree hierarchy structure
   Graph graph = 5;          // Graph relationships
   repeated BoundingBox bvh_boxes = 6;  // Simplified BVH representation (AABBs)
+  map<string, EdgeFeature> edge_features = 7;  // Typed edge features keyed by feature GUID
 }
