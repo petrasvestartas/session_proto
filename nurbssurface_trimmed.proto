@@ -7,8 +7,8 @@ import "xform.proto";
 import "nurbssurface.proto";
 import "nurbscurve.proto";
 
-// TrimmedSurface message representing a NURBS surface with trim boundaries
-message TrimmedSurface {
+// NurbsSurfaceTrimmed message representing a NURBS surface with trim boundaries
+message NurbsSurfaceTrimmed {
   string guid = 1;                        // Unique identifier
   string name = 2;                        // Surface name
   NurbsSurface surface = 3;               // Underlying untrimmed surface

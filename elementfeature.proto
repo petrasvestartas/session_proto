@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package session_proto;
+
+// CrossElementFeature: plane-to-face cross joint between plate elements.
+// Geometry lives in Session::lookup as Polylines, referenced by GUID.
+message CrossElementFeature {
+  string guid = 1;
+  int32 face_ids_a_first = 2;
+  int32 face_ids_a_second = 3;
+  int32 face_ids_b_first = 4;
+  int32 face_ids_b_second = 5;
+  string joint_area_guid = 6;
+  repeated string joint_volume_guids = 7;  // size 2
+  repeated string joint_line_guids = 8;    // size 2
+}
+
+// FaceElementFeature: face-to-face coplanar joint between two elements.
+message FaceElementFeature {
+  string guid = 1;
+  int32 face_id_a = 2;
+  int32 face_id_b = 3;
+  string joint_area_guid = 4;
+}
+
+// AxisElementFeature: closest-polyline / axis-to-axis connection for beam / axis workflows.
+message AxisElementFeature {
+  string guid = 1;
+  string axis_a_guid = 2;
+  string axis_b_guid = 3;
+  string connector_guid = 4;
+  double distance = 5;
+}
+
+// CollisionElementFeature: BVH / OBB / AABB collision pair.
+message CollisionElementFeature {
+  string guid = 1;
+  string mode = 2;  // "bvh", "obb", "aabb", ...
+}
+
+// EdgeElementFeature: sum type of everything that can live on a graph edge as a
+// structured element feature. Absent payload (oneof unset) represents std::monostate
+// / None / Empty — no element feature attached.
+message EdgeElementFeature {
+  oneof payload {
+    CrossElementFeature cross = 1;
+    FaceElementFeature face = 2;
+    AxisElementFeature axis = 3;
+    CollisionElementFeature collision = 4;
+  }
+}
