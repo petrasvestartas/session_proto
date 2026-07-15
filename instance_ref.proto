@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package session_proto;
+
+import "xform.proto";
+import "color.proto";
+
+// InstanceRef message: a block reference that places a definition by a transform
+message InstanceRef {
+  string guid = 1;              // Unique identifier
+  string name = 2;              // Instance name
+  string definition_guid = 3;   // Guid of the definition this instance places
+  Xform xform = 4;              // Placement transform (the only per-instance data)
+  Color color = 5;              // Per-instance color override
+  uint32 flags = 6;             // Reserved: selection / cull / visibility
+}
