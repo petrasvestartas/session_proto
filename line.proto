@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package session_proto;
 
+import "color.proto";
 import "point.proto";
 import "xform.proto";
 
@@ -12,4 +13,6 @@ message Line {
   string guid = 3;    // Unique identifier
   string name = 4;    // Line name
   Xform xform = 5;    // Transformation matrix
+  double width = 6;   // Line width
+  Color linecolor = 7; // Line color
 }
