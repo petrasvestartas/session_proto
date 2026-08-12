@@ -3,7 +3,6 @@ syntax = "proto3";
 package session_proto;
 
 import "color.proto";
-import "xform.proto";
 
 // Vertex data for mesh
 message VertexData {
@@ -57,7 +56,7 @@ message Mesh {
   repeated Color facecolors = 11;               // Face colors
   repeated Color linecolors = 12;               // Edge colors
   repeated double widths = 13;                  // Edge widths
-  Xform xform = 14;                             // Transformation matrix
+  reserved 14;  // was: Xform xform - transforms now live only on Session
   Color objectcolor = 15;                       // Object color
   int32 color_mode = 16;                        // Active color mode (0=objectcolor,1=pointcolors,2=facecolors,3=none)
   map<uint64, TriList> triangulation = 17;      // Face triangulation (face_key -> flat triangle vertex keys)

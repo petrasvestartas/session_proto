@@ -6,6 +6,15 @@ import "objects.proto";
 import "tree.proto";
 import "graph.proto";
 import "boundingbox.proto";
+import "xform.proto";
+
+// One object's local placement. Transforms are stored ONLY here - geometry types
+// carry no transformation member. A map is deliberately avoided: map iteration
+// order is unspecified, and this repo requires byte-identical output across languages.
+message XformEntry {
+  string guid = 1;   // Guid of the object this transform places
+  Xform xform = 2;   // LOCAL transform, relative to the tree parent
+}
 
 // Session message representing a complete session with geometry and hierarchy
 message Session {
@@ -15,4 +24,5 @@ message Session {
   Tree tree = 4;            // Tree hierarchy structure
   Graph graph = 5;          // Graph relationships
   repeated BoundingBox bvh_boxes = 6;  // Simplified BVH representation (AABBs)
+  repeated XformEntry xforms = 7;      // Local transforms in Session::order() sequence, identity omitted
 }

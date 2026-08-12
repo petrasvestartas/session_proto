@@ -4,7 +4,6 @@ package session_proto;
 
 import "color.proto";
 import "point.proto";
-import "xform.proto";
 
 // Line message representing a line segment
 message Line {
@@ -12,7 +11,7 @@ message Line {
   Point end = 2;      // End point
   string guid = 3;    // Unique identifier
   string name = 4;    // Line name
-  Xform xform = 5;    // Transformation matrix
+  reserved 5;  // was: Xform xform - transforms now live only on Session
   double width = 6;   // Line width
   Color linecolor = 7; // Line color
 }

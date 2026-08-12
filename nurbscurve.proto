@@ -3,7 +3,6 @@ syntax = "proto3";
 package session_proto;
 
 import "color.proto";
-import "xform.proto";
 
 // NurbsCurve message representing a Non-Uniform Rational B-Spline curve
 message NurbsCurve {
@@ -18,6 +17,6 @@ message NurbsCurve {
   repeated double cvs = 9;        // Control vertices (flat array)
   double width = 10;              // Line width for display
   repeated Color pointcolors = 11; // Point colors (RGBA)
-  Xform xform = 12;               // Transformation matrix
+  reserved 12;  // was: Xform xform - transforms now live only on Session
   repeated Color linecolors = 13;  // Line colors (RGBA)
 }

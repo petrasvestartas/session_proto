@@ -3,7 +3,6 @@ syntax = "proto3";
 package session_proto;
 
 import "color.proto";
-import "xform.proto";
 
 // Polyline message representing a connected sequence of points
 // Stores coordinates as a flat array [x0, y0, z0, x1, y1, z1, ...] for efficiency
@@ -13,5 +12,5 @@ message Polyline {
   repeated double coords = 3;     // Flat array of coordinates [x0, y0, z0, x1, y1, z1, ...]
   double width = 4;               // Line width
   Color linecolor = 5;            // Line color
-  Xform xform = 6;                // Transformation matrix
+  reserved 6;  // was: Xform xform - transforms now live only on Session
 }

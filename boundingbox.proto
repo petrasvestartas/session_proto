@@ -4,7 +4,6 @@ package session_proto;
 
 import "point.proto";
 import "vector.proto";
-import "xform.proto";
 
 // BoundingBox message representing an oriented bounding box
 message BoundingBox {
@@ -15,5 +14,5 @@ message BoundingBox {
   Vector half_size = 5;   // Half-extents along each axis
   string guid = 6;        // Unique identifier
   string name = 7;        // Bounding box name
-  Xform xform = 8;        // Transformation matrix
+  reserved 8;  // was: Xform xform - transforms now live only on Session
 }

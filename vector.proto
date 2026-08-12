@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package session_proto;
 
-import "xform.proto";
 
 // Vector message representing a 3D vector
 message Vector {
@@ -10,5 +9,5 @@ message Vector {
   double y = 2;  // Y component
   double z = 3;  // Z component
   string name = 4;  // Optional vector name
-  Xform xform = 5;  // Transformation matrix
+  reserved 5;  // was: Xform xform - transforms now live only on Session
 }

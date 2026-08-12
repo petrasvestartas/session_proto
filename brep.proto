@@ -3,7 +3,6 @@ syntax = "proto3";
 package session_proto;
 
 import "color.proto";
-import "xform.proto";
 import "nurbssurface.proto";
 import "nurbscurve.proto";
 import "point.proto";
@@ -67,5 +66,5 @@ message BRep {
   repeated BRepFace faces = 11;
   double width = 12;
   Color surfacecolor = 13;
-  Xform xform = 14;
+  reserved 14;  // was: Xform xform - transforms now live only on Session
 }
