@@ -14,4 +14,5 @@ message Line {
   reserved 5;  // was: Xform xform - transforms now live only on Session
   double width = 6;   // Line width
   Color linecolor = 7; // Line color
+  repeated double dash = 8;   // Dash pattern: on/off lengths in mm, repeating; empty = solid
 }
