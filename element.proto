@@ -22,6 +22,12 @@ message ElementFeature {
   string feature_type = 2;           // What kind of modification, e.g. "cut", "drill", "joint"
   int32 face_index = 3;              // Face of the host this applies to; -1 = the whole element
   repeated Polyline outlines = 4;    // Geometry of the modification
+  // A feature is addressable in its own right: the package that wrote a joint needs to name it
+  // again later - to update it, to report a clash against it, to let a viewer select one of the
+  // forty cuts on a beam. The only other handle is the index in `features`, and that moves the
+  // moment an earlier feature is removed. Empty in files written before this field existed, in
+  // which case the reader leaves the lazy mint to whoever asks first.
+  string guid = 5;                   // Unique identifier, stable across a round trip
 }
 
 // Element message wrapping geometry with metadata.
