@@ -2,27 +2,22 @@ syntax = "proto3";
 
 package session_proto;
 
-import "plane.proto";
-
-message JointConnection {
-  int32 joint_id = 1;
-  bool is_male = 2;
-  double parameter = 3;
-}
-
-message FaceJoints {
-  repeated JointConnection connections = 1;
-}
-
-// Element message wrapping geometry with transformation and metadata
+// Element message wrapping geometry with metadata.
+//
+// An Element is a geometry container and nothing more: a name, a guid, and one serialized
+// geometry payload. The Beam/Column/Plate kinds and their timber-joinery fields were removed
+// (see below) — an Element no longer knows what it "is", only what geometry it holds.
 message Element {
   string name = 1;                      // Element name
   string guid = 2;                      // Unique identifier
   string geometry_type = 3;             // Class name for polymorphic decode
   bytes geometry_data = 4;              // Serialized geometry bytes
   reserved 5;  // was: Xform session_transformation - transforms now live only on Session
-  repeated int32 joint_types = 6;       // Per-edge joint type codes
-  repeated FaceJoints j_mf = 7;        // Per-face joint connections
-  string key = 8;                       // Component identifier
-  Plane component_plane = 9;           // Reference plane for the component
+  // Removed with the element kinds: the timber-joinery model.
+  //   6 repeated int32 joint_types    — per-edge joint type codes
+  //   7 repeated FaceJoints j_mf      — per-face joint connections (with JointConnection)
+  //   8 string key                    — component identifier
+  //   9 Plane component_plane         — reference plane for the component
+  // The `JointConnection` and `FaceJoints` messages went with them.
+  reserved 6, 7, 8, 9;
 }

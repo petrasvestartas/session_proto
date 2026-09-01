@@ -12,11 +12,6 @@ message VertexData {
   map<string, double> attributes = 4;  // Custom vertex attributes
 }
 
-// Halfedge connectivity (stored as nested maps)
-message HalfedgeMap {
-  map<uint64, uint64> neighbors = 1;  // vertex_key -> halfedge_key
-}
-
 // Hole ring (inner ring for face with holes)
 message HoleRing {
   repeated uint64 vertices = 1;
@@ -47,17 +42,34 @@ message Mesh {
   string name = 2;                              // Mesh name
   map<uint64, VertexData> vertices = 3;         // vertex_key -> VertexData
   map<uint64, FaceData> faces = 4;              // face_key -> FaceData
-  map<uint64, HalfedgeMap> halfedges = 5;       // Halfedge connectivity
+  // P6: halfedges were tag 5, a map<uint64, HalfedgeMap> — a nested map PER VERTEX. It was
+  // DERIVED data: every reader rebuilds topology on demand (`ensure_halfedges`) and none of
+  // them ever consumed the field, yet it was up to 61% of a file and the decoder built the
+  // whole nested structure before throwing it away. Removing it from the schema is what makes
+  // that skip automatic and free in all three languages: an unknown tag is length-jumped, so
+  // pre-P6 files still load — faster than before — with no reader-side special case.
+  reserved 5;
   repeated EdgeData edge_data = 6;              // Edge custom data
   map<string, double> default_vertex_attributes = 7;  // Default vertex attrs
   map<string, double> default_face_attributes = 8;    // Default face attrs
   map<string, double> default_edge_attributes = 9;    // Default edge attrs
-  repeated Color pointcolors = 10;              // Vertex colors
-  repeated Color facecolors = 11;               // Face colors
-  repeated Color linecolors = 12;               // Edge colors
+  reserved 10, 11, 12;  // were: repeated Color point/face/linecolors — see the packed arrays below
   repeated double widths = 13;                  // Edge widths
   reserved 14;  // was: Xform xform - transforms now live only on Session
   Color objectcolor = 15;                       // Object color
   int32 color_mode = 16;                        // Active color mode (0=objectcolor,1=pointcolors,2=facecolors,3=none)
   map<uint64, TriList> triangulation = 17;      // Face triangulation (face_key -> flat triangle vertex keys)
+
+  // ── P6: packed colour arrays, 4 floats per colour (r,g,b,a) ──
+  // `repeated Color` costs a sub-message per element carrying a 36-char guid String and a
+  // name — 66 B per colour against 16 B of actual data, and ~500-800k String allocations
+  // per sheet load. Packed float is bit-exact, memcpy-decodable and sliceable.
+  //
+  // Bulk colours carry NO guid and NO name. The guid was never identity — colour equality
+  // ignores it in all three languages and it is lazily minted. The name is always the
+  // default for bulk colours (every producer pushes Color::white()/black()); a Line, which
+  // CAN be named, keeps a zero-cost `linecolor_name` string instead.
+  repeated float pointcolors_rgba = 18;
+  repeated float facecolors_rgba = 19;
+  repeated float linecolors_rgba = 20;
 }

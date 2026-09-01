@@ -2,17 +2,35 @@ syntax = "proto3";
 
 package session_proto;
 
-import "color.proto";
-import "point.proto";
-
 // Line message representing a line segment
 message Line {
-  Point start = 1;    // Start point
-  Point end = 2;      // End point
+  reserved 1, 2;  // were: Point start/end — serialization-only wrappers, see `coords` below
   string guid = 3;    // Unique identifier
   string name = 4;    // Line name
   reserved 5;  // was: Xform xform - transforms now live only on Session
   double width = 6;   // Line width
-  Color linecolor = 7; // Line color
+  reserved 7;  // was: Color linecolor — a 36-char guid String per line, see `linecolor_rgba`
   repeated double dash = 8;   // Dash pattern: on/off lengths in mm, repeating; empty = solid
+
+  // ── P6: the two hot fields, flattened ──
+  // A Line is the most numerous object in a drawing sheet (89,835 in one measured file,
+  // 178 B each on the wire for 48 B of data), so its per-object overhead IS the sheet
+  // load cost — and that cost is per-OBJECT, not per-byte: sheets decode at 95 ms/MB
+  // against 28 ms/MB for a point cloud, the difference being String and sub-message
+  // allocation.
+  //
+  // coords: [x0,y0,z0,x1,y1,z1] packed, replacing the two `Point` sub-messages. The kernel
+  // stores flat _x0.._z1 and never held Points at all — they were serialization-only
+  // wrappers, and each also carried a redundant `width: 1.0` fixed64.
+  //
+  // linecolor_rgba: 4 packed floats. The `Color` sub-message carried a 36-char guid String
+  // (~38 B) for a colour whose equality ignores the guid — dropped outright.
+  //
+  // linecolor_name: colour equality DOES compare the name, so it needs a home. proto3 omits
+  // an empty string entirely, so the default ("my_color") costs ZERO bytes on the wire —
+  // which is every line in a drawing sheet. Only a deliberately named colour pays, and it
+  // pays 8 bytes instead of a whole sub-message.
+  repeated double coords = 9;
+  repeated float linecolor_rgba = 10;
+  string linecolor_name = 11;
 }
