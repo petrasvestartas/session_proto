@@ -11,6 +11,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Need history: the push baseline is a commit, not the branch tip.
+          fetch-depth: 0
+
+      # On a push to main, `breaking_against: branch=main` compares the branch to ITSELF - the
+      # checkout IS main - so the check can never fail. It passed a change of Element field 12
+      # from a message to a double, and field 13's cardinality, without a word; buf flags all
+      # three the moment it is given the parent commit. Compare against what main was BEFORE
+      # the push instead, and keep comparing a PR against main.
+      - id: baseline
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "against=https://github.com/petrasvestartas/session_proto.git#branch=${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
+          else
+            before="${{ github.event.before }}"
+            if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ] \
+               || ! git cat-file -e "$before^{commit}" 2>/dev/null; then
+              before="HEAD~1"   # first push on a branch, or a force-push that orphaned it
+            fi
+            echo "against=.git#ref=$before" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: bufbuild/buf-action@v1
         with:
-          breaking_against: 'https://github.com/petrasvestartas/session_proto.git#branch=main'
+          breaking_against: ${{ steps.baseline.outputs.against }}
