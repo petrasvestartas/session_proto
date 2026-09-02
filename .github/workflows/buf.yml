@@ -33,6 +33,13 @@ jobs:
             echo "against=.git#ref=$before" >> "$GITHUB_OUTPUT"
           fi
 
+      # An intentional wire break (a message rewritten from scratch) is opted into by putting
+      # [proto-breaking] in the commit message; the lint still runs, only the breaking check skips.
       - uses: bufbuild/buf-action@v1
+        if: "!contains(github.event.head_commit.message, '[proto-breaking]')"
         with:
           breaking_against: ${{ steps.baseline.outputs.against }}
+      - uses: bufbuild/buf-action@v1
+        if: "contains(github.event.head_commit.message, '[proto-breaking]')"
+        with:
+          breaking: false
