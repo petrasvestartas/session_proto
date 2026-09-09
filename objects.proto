@@ -13,6 +13,7 @@ import "nurbscurve.proto";
 import "nurbssurface.proto";
 import "brep.proto";
 import "element.proto";
+import "sheet.proto";
 
 // Component message for custom domain objects (e.g. FloorBuilder, WallBuilder)
 // Allows external packages to store arbitrary serializable objects in a Session.
@@ -39,4 +40,5 @@ message Objects {
   repeated BRep breps = 14;                 // Collection of BReps
   repeated Element elements = 15;           // Collection of elements
   repeated Component components = 16;       // Collection of custom domain objects
+  repeated Sheet sheets = 17;               // Collection of sheets
 }
