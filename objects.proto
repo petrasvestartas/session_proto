@@ -13,6 +13,7 @@ import "nurbscurve.proto";
 import "nurbssurface.proto";
 import "brep.proto";
 import "element.proto";
+import "instance_ref.proto";
 import "sheet.proto";
 
 // Component message for custom domain objects (e.g. FloorBuilder, WallBuilder)
@@ -41,4 +42,5 @@ message Objects {
   repeated Element elements = 15;           // Collection of elements
   repeated Component components = 16;       // Collection of custom domain objects
   repeated Sheet sheets = 17;               // Collection of sheets
+  repeated InstanceRef instances = 18;      // Instances; each places a definition of Session.definitions
 }

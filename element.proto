@@ -27,6 +27,10 @@ message ElementFeature {
   // moment an earlier feature is removed. Empty in files written before this field existed, in
   // which case the reader leaves the lazy mint to whoever asks first.
   string guid = 5;                   // Unique identifier, stable across a round trip
+  // Whether a viewer draws the feature, so a package can switch one off without deleting it.
+  // Written only when false: a file from before this field, and every visible feature, reads
+  // back visible.
+  optional bool visible = 6;
 }
 
 // Element message wrapping geometry with metadata.

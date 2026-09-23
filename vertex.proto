@@ -8,4 +8,5 @@ message Vertex {
   string guid = 2;       // Unique identifier
   string attribute = 3;  // Vertex attribute data as string
   int32 index = 4;       // Integer index for the vertex
+  map<string, double> attributes = 5;  // Name -> value, overriding the graph defaults
 }

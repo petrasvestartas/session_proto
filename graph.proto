@@ -13,4 +13,6 @@ message Graph {
   repeated Edge edges = 4;              // List of edges
   int32 vertex_count = 5;               // Vertex counter
   int32 edge_count = 6;                 // Edge counter
+  map<string, double> default_vertex_attributes = 7;  // Default vertex attributes
+  map<string, double> default_edge_attributes = 8;    // Default edge attributes
 }

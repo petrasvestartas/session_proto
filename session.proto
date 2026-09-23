@@ -25,4 +25,5 @@ message Session {
   Graph graph = 5;          // Graph relationships
   repeated BoundingBox bvh_boxes = 6;  // Simplified BVH representation (AABBs)
   repeated XformEntry xforms = 7;      // Local transforms in Session::order() sequence, identity omitted
+  Objects definitions = 8;             // Shared geometry instances place, each in its own frame; absent when there is none
 }
