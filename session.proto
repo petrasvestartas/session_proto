@@ -7,6 +7,7 @@ import "tree.proto";
 import "graph.proto";
 import "boundingbox.proto";
 import "xform.proto";
+import "interaction.proto";
 
 // One object's local placement. Transforms are stored ONLY here - geometry types
 // carry no transformation member. A map is deliberately avoided: map iteration
@@ -14,6 +15,12 @@ import "xform.proto";
 message XformEntry {
   string guid = 1;   // Guid of the object this transform places
   Xform xform = 2;   // LOCAL transform, relative to the tree parent
+}
+
+// The interactions of one graph edge, keyed like XformEntry for the same reason.
+message InteractionEntry {
+  string guid = 1;                       // Guid of the graph edge
+  repeated Interaction interactions = 2; // The edge's interactions, in insertion order
 }
 
 // Session message representing a complete session with geometry and hierarchy
@@ -26,4 +33,5 @@ message Session {
   repeated BoundingBox bvh_boxes = 6;  // Simplified BVH representation (AABBs)
   repeated XformEntry xforms = 7;      // Local transforms in Session::order() sequence, identity omitted
   Objects definitions = 8;             // Shared geometry instances place, each in its own frame; absent when there is none
+  repeated InteractionEntry interactions = 9;  // Interactions per graph edge, in edge-guid order
 }

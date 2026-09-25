@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package session_proto;
+
+// Interaction message: what joins two elements, stored on their graph edge
+message Interaction {
+  string guid = 1;              // Unique identifier
+  string name = 2;              // What joins the pair, e.g. "glue"; empty when unnamed
+  string interaction_type = 3;  // Registered derived type name; empty for a plain Interaction
+  bytes interaction_data = 4;   // Opaque derived-type state, carried through untouched
+}
