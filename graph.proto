@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package session_proto;
 
-import "vertex.proto";
-import "edge.proto";
+import "graph_vertex.proto";
+import "graph_edge.proto";
 
 // Graph message representing a graph data structure
 message Graph {
