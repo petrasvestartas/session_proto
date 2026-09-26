@@ -33,4 +33,5 @@ message Line {
   repeated double coords = 9;
   repeated float linecolor_rgba = 10;
   string linecolor_name = 11;
+  int32 arrowhead = 12;   // Arrowhead ends (0=none, 1=start, 2=end, 3=both)
 }

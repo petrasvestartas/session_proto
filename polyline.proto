@@ -14,4 +14,5 @@ message Polyline {
   Color linecolor = 5;            // Line color
   reserved 6;  // was: Xform xform - transforms now live only on Session
   repeated double dash = 7;       // Dash pattern: on/off lengths in mm, repeating; empty = solid
+  int32 arrowhead = 8;            // Arrowhead ends (0=none, 1=start, 2=end, 3=both)
 }

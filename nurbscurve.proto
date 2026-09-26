@@ -19,4 +19,5 @@ message NurbsCurve {
   repeated Color pointcolors = 11; // Point colors (RGBA)
   reserved 12;  // was: Xform xform - transforms now live only on Session
   repeated Color linecolors = 13;  // Line colors (RGBA)
+  int32 arrowhead = 14;           // Arrowhead ends (0=none, 1=start, 2=end, 3=both)
 }
