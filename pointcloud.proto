@@ -46,4 +46,7 @@ message PointCloud {
   // would cost 1-5 bytes each and could not be sliced by byte range, which is the property the
   // rest of this message is built on.
   repeated fixed32 point_ids = 15;
+
+  // Whether a viewer draws it. Written only when false: older files read back visible.
+  optional bool is_visible = 16;
 }

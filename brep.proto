@@ -84,4 +84,7 @@ message BRep {
   double width = 12;
   Color surfacecolor = 13;
   reserved 14;  // was: Xform xform - transforms now live only on Session
+
+  // Whether a viewer draws it. Written only when false: older files read back visible.
+  optional bool is_visible = 15;
 }

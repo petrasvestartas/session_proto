@@ -14,4 +14,7 @@ message Point {
   double width = 6;       // Point diameter in pixels for display
   Color pointcolor = 7;   // Color of the point
   reserved 8;  // was: Xform xform - transforms now live only on Session
+
+  // Whether a viewer draws it. Written only when false: older files read back visible.
+  optional bool is_visible = 9;
 }

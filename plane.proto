@@ -14,4 +14,7 @@ message Plane {
   double width = 4;             // Width for plane visualization
   reserved 5;  // was: Xform xform - transforms now live only on Session
   Color linecolor = 6;           // Color of the plane
+
+  // Whether a viewer draws it. Written only when false: older files read back visible.
+  optional bool is_visible = 7;
 }

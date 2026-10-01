@@ -28,4 +28,7 @@ message NurbsSurface {
   repeated Color facecolors = 19;  // Face colors (RGBA)
   repeated Color linecolors = 20;  // Line colors (RGBA)
   Mesh cached_mesh = 21;           // Cached tessellation mesh
+
+  // Whether a viewer draws it. Written only when false: older files read back visible.
+  optional bool is_visible = 22;
 }

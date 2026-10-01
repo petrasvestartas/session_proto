@@ -15,4 +15,7 @@ message BoundingBox {
   string guid = 6;        // Unique identifier
   string name = 7;        // Bounding box name
   reserved 8;  // was: Xform xform - transforms now live only on Session
+
+  // Whether a viewer draws it. Written only when false: older files read back visible.
+  optional bool is_visible = 9;
 }

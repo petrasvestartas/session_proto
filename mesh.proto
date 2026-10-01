@@ -72,4 +72,7 @@ message Mesh {
   repeated float pointcolors_rgba = 18;
   repeated float facecolors_rgba = 19;
   repeated float linecolors_rgba = 20;
+
+  // Whether a viewer draws it. Written only when false: older files read back visible.
+  optional bool is_visible = 21;
 }
