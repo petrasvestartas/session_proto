@@ -109,4 +109,6 @@ message Element {
   // stay in the tree and graph but start switched off. Written only when false: a file from
   // before this field, and every visible element, reads back visible.
   optional bool is_visible = 15;
+  // Whether a viewer keeps it from being moved or edited. Written only when true.
+  optional bool is_locked = 16;
 }

@@ -18,4 +18,6 @@ message Polyline {
 
   // Whether a viewer draws it. Written only when false: older files read back visible.
   optional bool is_visible = 9;
+  // Whether a viewer keeps it from being moved or edited. Written only when true.
+  optional bool is_locked = 10;
 }
