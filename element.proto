@@ -104,4 +104,9 @@ message Element {
   // fields 6-9 - a joint type code is a feature on a face, which is what those were spelling
   // out one array at a time.
   repeated ElementFeature features = 14;
+
+  // Whether a viewer draws the element, so a package can ship helpers - a joint, a guide - that
+  // stay in the tree and graph but start switched off. Written only when false: a file from
+  // before this field, and every visible element, reads back visible.
+  optional bool is_visible = 15;
 }
